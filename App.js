@@ -11,6 +11,9 @@ import BookingPage from './components/Book'; // Import BookingPage
 import FeePage from './components/Fee';
 import Pending from './components/Pending';
 import Settings from './components/Settings'; 
+import TutorDash from './components/TutorDash';
+import Schedule from './components/Schedule'
+import TutorSub from './components/TutorSub';
 
 const Stack = createStackNavigator();
 
@@ -87,6 +90,26 @@ export default function App() {
           name="Settings" 
           component={Settings} 
           options={{ headerShown: false }} // Optional: Hide header for consistency
+        />
+        <Stack.Screen 
+          name="TutorDashboard" 
+          component={TutorDash} 
+          options={{ headerShown: false }} 
+        />
+        <Stack.Screen 
+          name="Schedule" 
+          component={Schedule} 
+          options={{ headerShown: false }} 
+/>
+
+<Stack.Screen 
+          name="TutorSub" 
+          component={TutorSub} 
+          options={{
+            title: 'My Subjects',
+            headerBackTitleVisible: false,
+            color: '#003366'
+          }} 
         />
       </Stack.Navigator>
     </NavigationContainer>

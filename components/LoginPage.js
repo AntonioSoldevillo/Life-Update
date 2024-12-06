@@ -17,51 +17,74 @@ const LoginPage = ({ navigation }) => {
       alert('Please enter both email and password');
       return;
     }
-
+  
     try {
-      // Sign in with email and password
-      const { data, error } = await supabase.auth.signInWithPassword({
+      // Sign in with Supabase
+      const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
-
-      console.log('Supabase Response Data:', data); // Log the response data
-      console.log('Supabase Response Error:', error); // Log the error (if any)
-
-      if (error) {
-        setErrorMessage(error.message);  // Show error message to the user
+  
+      if (authError) {
+        console.error('Login error:', authError.message);
+        setErrorMessage(authError.message);
         return;
       }
-
-      if (data) {
-        // Successful login
-        alert('Logged in successfully');
-        navigation.navigate('Dashboard'); // Navigate to Dashboard on success
+  
+      const userId = authData.user.id;
+  
+      // Fetch user details from `users` table
+      const { data: userData, error: userError } = await supabase
+        .from('users')
+        .select('*')
+        .eq('id', userId)
+        .single();
+  
+      if (userError) {
+        console.error('Error fetching user:', userError.message);
+        setErrorMessage('Error fetching user details: ' + userError.message);
+        return;
+      }
+  
+      // Check if the user is also in the `tutors` table
+      const { data: tutorData, error: tutorError } = await supabase
+        .from('tutors')
+        .select('*')
+        .eq('user_id', userId)
+        .single();
+  
+      if (tutorError && tutorError.code !== 'PGRST116') { // Ignore "no rows found" errors
+        console.error('Error checking tutor role:', tutorError.message);
+        setErrorMessage('Error checking tutor role: ' + tutorError.message);
+        return;
+      }
+  
+      // Determine where to navigate based on role
+      if (tutorData) {
+        navigation.navigate('TutorDashboard'); // Tutor dashboard
       } else {
-        setErrorMessage('Login failed');  // If no data is returned, show a generic message
+        navigation.navigate('TuteeDashboard'); // Tutee dashboard
       }
     } catch (error) {
-      console.error('Error during login:', error); // Log unexpected errors
-      setErrorMessage('Error during login: ' + error.message);
+      console.error('Unexpected login error:', error);
+      setErrorMessage('An unexpected error occurred: ' + error.message);
     }
   };
+  
 
   useEffect(() => {
     // Listen for authentication state changes
-    const { data: subscription } = supabase.auth.onAuthStateChange((event, session) => {
+    const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {
       if (session) {
-        // If the session is valid (user is authenticated), navigate to the Dashboard
-        navigation.navigate('Dashboard');
+        navigation.navigate('Dashboard'); // Adjust the destination as needed
       }
     });
   
     // Clean up the listener when the component unmounts
     return () => {
-      subscription?.unsubscribe();  // Safely unsubscribe
+      authListener?.unsubscribe(); // Use unsubscribe() to clean up
     };
   }, [navigation]);
-  
-
   return (
     <View style={styles.container}>
       <Image source={require('../assets/logo.png')} style={styles.logo} />
@@ -164,18 +187,18 @@ const styles = StyleSheet.create({
   input: {
     marginBottom: 10,
     backgroundColor: 'transparent',
-    width: '100%', // Ensure full width for inputs
+    width: '100%',
   },
   passwordContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     position: 'relative',
-    width: '100%', // Stretch the container to full width
+    width: '100%',
   },
   eyeIcon: {
     position: 'absolute',
     right: 15,
-    top: 15, // Adjusted to align better with the TextInput
+    top: 15,
   },
   rememberMeContainer: {
     flexDirection: 'row',

@@ -46,19 +46,19 @@ const SubjectPage = ({ navigation }) => {
 
       {/* Bottom Navigation */}
       <View style={styles.bottomNav}>
-        <TouchableOpacity onPress={() => navigation.navigate('Dashboard')}>
+      <TouchableOpacity>
           <Ionicons name="home-outline" size={24} color="#003366" />
         </TouchableOpacity>
         <TouchableOpacity>
           <Ionicons name="person-outline" size={24} color="#808080" />
         </TouchableOpacity>
-        <TouchableOpacity>
-          <Ionicons name="book-outline" size={24} color="#003366" />
+        <TouchableOpacity onPress={() => navigation.navigate('Subjects')}>
+          <Ionicons name="book-outline" size={24} color="#808080" />
         </TouchableOpacity>
         <TouchableOpacity>
           <Ionicons name="chatbubble-outline" size={24} color="#808080" />
         </TouchableOpacity>
-        <TouchableOpacity>
+        <TouchableOpacity onPress={() => navigation.navigate('Settings')}>
           <Ionicons name="settings-outline" size={24} color="#808080" />
         </TouchableOpacity>
       </View>
