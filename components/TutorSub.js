@@ -1,241 +1,204 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TextInput, TouchableOpacity, Image, ScrollView, Alert } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-import supabase from '../src/supabaseClient';  // Assuming you have initialized Supabase client
+import React, { useState, useEffect } from 'react'; 
+import {
+  View,
+  Text,
+  StyleSheet,
+  ActivityIndicator,
+  TouchableOpacity,
+  Alert,
+  ScrollView,
+} from 'react-native';
+import supabase from '../src/supabaseClient'; // Import Supabase client
 
-const TutorSub = ({ navigation }) => {
-  const [subjectName, setSubjectName] = useState('');
-  const [tutorId, setTutorId] = useState(null);  // Set tutorId initially to null
+const SubjectTutorsPage = () => {
+  const [selectedSubject, setSelectedSubject] = useState(null);
+  const [tutors, setTutors] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [tutorId, setTutorId] = useState(null); // Holds the logged-in tutor's ID
 
-  useEffect(() => {
-    // Fetch the logged-in user's tutor ID when the component mounts
-    const getTutorId = async () => {
-      const user = supabase.auth.user();  // Get the current logged-in user
-      if (user) {
-        // Assuming you have a 'tutors' table that links user ID with tutor ID
-        const { data, error } = await supabase
-          .from('tutors')
-          .select('tutor_id')
-          .eq('user_id', user.id)  // Get tutor data based on user_id from the tutors table
-          .single();
-
-        if (error) {
-          Alert.alert("Error", "Failed to fetch tutor ID.");
-        } else {
-          setTutorId(data.tutor_id);  // Set the tutor ID from the response
-        }
-      }
-    };
-
-    getTutorId();
-  }, []);
-
+  // Predefined subjects
   const subjects = [
-    { title: 'Introduction To Computing', image: require('../assets/computing.jpg'), id: 1 },
-    { title: 'Computer Programming 1&2', image: require('../assets/programming.jpg'), id: 2 },
-    { title: 'Data Structures & Algorithm', image: require('../assets/datastructure.png'), id: 3 },
-    { title: 'Discrete Mathematics', image: require('../assets/discrete.jpg'), id: 4 },
+    { id: 1000, name: 'Soft Eng' },
+    { id: 1001, name: 'Mob Prog' },
+    { id: 1002, name: 'Techno' },
   ];
 
-  const handleAddSubject = async () => {
-    if (!subjectName) {
-      Alert.alert("Error", "Subject name is required.");
-      return;
-    }
-    if (!tutorId) {
-      Alert.alert("Error", "Tutor ID is not available.");
-      return;
-    }
-
-    // Insert the new subject into the database
+  // Fetch the logged-in tutor's ID
+  const fetchTutorId = async () => {
     try {
-      const { data, error } = await supabase
-        .from('subjects')
-        .insert([ 
-          { 
-            subject_name: subjectName,
-            tutor_id: tutorId,  // Automatically assigns the tutor_id based on the logged-in tutor
-          }
-        ]);
-      if (error) {
-        Alert.alert("Error", "Failed to add subject.");
-      } else {
-        Alert.alert("Success", "Subject added successfully!");
-        setSubjectName(''); // Clear the input field after submission
+      const { data: { user }, error } = await supabase.auth.getUser(); // Fetch the logged-in user
+
+      if (error || !user) {
+        console.error('Error fetching user:', error || 'No user found');
+        Alert.alert('Error', 'Unable to identify the logged-in user.');
+        return;
       }
-    } catch (err) {
-      console.error(err);
-      Alert.alert("Error", "Something went wrong!");
+
+      const userId = user.id; // Get the user ID
+
+      // Query the `tutors` table for the tutor's ID
+      const { data, error: tutorError } = await supabase
+        .from('tutors')
+        .select('tutor_id')
+        .eq('user_id', userId)
+        .single();
+
+      if (tutorError) throw tutorError;
+
+      setTutorId(data?.tutor_id); // Store the tutor's ID
+    } catch (error) {
+      console.error('Error fetching tutor ID:', error.message);
+      Alert.alert('Error', 'Could not fetch tutor information.');
     }
   };
 
-  const handleDeleteSubject = async (subjectId) => {
+  useEffect(() => {
+    fetchTutorId(); // Fetch tutor ID on component mount
+  }, []);
+
+  // Fetch tutors enrolled in a subject
+  const fetchTutors = async (subjectId) => {
+    setIsLoading(true);
+    setTutors([]); // Clear previous tutors
+    setSelectedSubject(subjects.find((subject) => subject.id === subjectId));
+
     try {
       const { data, error } = await supabase
-        .from('subjects')
-        .delete()
-        .eq('subject_id', subjectId);  // Assuming 'subject_id' is the primary key for subjects table
+        .from('tutor_subjects')
+        .select(`
+          tutors (
+            user_id,
+            users (
+              full_name,
+              email
+            )
+          )
+        `)
+        .eq('subject_id', subjectId);
+
+      if (error) throw error;
+
+      const formattedTutors = data.map((entry) => ({
+        fullName: entry.tutors.users.full_name,
+        email: entry.tutors.users.email,
+      }));
+
+      setTutors(formattedTutors);
+    } catch (error) {
+      console.error('Error fetching tutors:', error.message);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Enroll the tutor in a subject
+  const enrollInSubject = async (subjectId) => {
+    if (!tutorId) {
+      Alert.alert('Error', 'You must be logged in as a tutor to enroll.');
+      return;
+    }
+
+    setIsLoading(true);
+
+    try {
+      const { error } = await supabase
+        .from('tutor_subjects')
+        .insert({
+          tutor_id: tutorId, // Use the fetched tutor ID
+          subject_id: subjectId, // ID of the selected subject
+        });
+
       if (error) {
-        Alert.alert("Error", "Failed to delete subject.");
-      } else {
-        Alert.alert("Success", "Subject deleted successfully!");
+        console.error('Supabase error:', error); // Log the error
+        throw error;
       }
-    } catch (err) {
-      console.error(err);
-      Alert.alert("Error", "Something went wrong!");
+
+      Alert.alert('Success', `You have enrolled in ${selectedSubject.name}!`);
+    } catch (error) {
+      console.error('Error enrolling in subject:', error.message);
+      Alert.alert('Error', 'Could not enroll in subject. Please try again.');
+    } finally {
+      setIsLoading(false);
     }
   };
 
   return (
     <View style={styles.container}>
-      {/* Search Bar */}
-      <View style={styles.searchContainer}>
-        <Ionicons name="search-outline" size={20} color="#808080" style={styles.searchIcon} />
-        <TextInput placeholder="Search subjects" style={styles.searchInput} />
-      </View>
+      {/* Header */}
+      <Text style={styles.headerTitle}>Subjects</Text>
 
-      {/* Add New Subject */}
-      <View style={styles.addSubjectContainer}>
-        <TextInput
-          placeholder="Enter Subject Name"
-          style={styles.addSubjectInput}
-          value={subjectName}
-          onChangeText={setSubjectName}
-        />
-      </View>
-
-      {/* Add Subject Button */}
-      <TouchableOpacity style={styles.addButton} onPress={handleAddSubject}>
-        <Text style={styles.addButtonText}>Add Subject</Text>
-      </TouchableOpacity>
-
-      {/* My Subjects Label */}
-      <Text style={styles.mySubjectsLabel}>My Subjects</Text>
-
-      {/* Subjects List */}
-      <ScrollView style={styles.subjectsContainer}>
+      {/* Subject Buttons */}
+      <View style={styles.subjectsContainer}>
         {subjects.map((subject) => (
-          <View key={subject.id} style={styles.subjectCard}>
-            <Image source={subject.image} style={styles.subjectImage} />
-            <Text style={styles.subjectTitle}>{subject.title}</Text>
-            <TouchableOpacity onPress={() => handleDeleteSubject(subject.id)} style={styles.deleteIcon}>
-              <Ionicons name="trash-outline" size={24} color="red" />
-            </TouchableOpacity>
-          </View>
+          <TouchableOpacity
+            key={subject.id}
+            style={styles.subjectButton}
+            onPress={() => setSelectedSubject(subject)}
+          >
+            <Text style={styles.subjectButtonText}>{subject.name}</Text>
+          </TouchableOpacity>
         ))}
-      </ScrollView>
-
-      {/* Bottom Navigation */}
-      <View style={styles.bottomNav}>
-        <TouchableOpacity onPress={() => navigation.navigate('TutorDashboard')}>
-          <Ionicons name="home-outline" size={24} color="#003366" />
-        </TouchableOpacity>
-        <TouchableOpacity>
-          <Ionicons name="person-outline" size={24} color="#808080" />
-        </TouchableOpacity>
-        <TouchableOpacity onPress={() => navigation.navigate('Schedule')}>
-          <Ionicons name="calendar-outline" size={24} color="#003366" />
-        </TouchableOpacity>
-        <TouchableOpacity>
-          <Ionicons name="book-outline" size={24} color="#003366" />
-        </TouchableOpacity>
-         
-        <TouchableOpacity>
-          <Ionicons name="settings-outline" size={24} color="#808080" />
-        </TouchableOpacity>
       </View>
+
+      {/* Enrollment Section */}
+      {selectedSubject && (
+        <View style={styles.enrollmentContainer}>
+          <Text style={styles.selectedSubjectTitle}>
+            Enroll in {selectedSubject.name}?
+          </Text>
+          <TouchableOpacity
+            style={styles.enrollButton}
+            onPress={() => enrollInSubject(selectedSubject.id)}
+            disabled={isLoading}
+          >
+            {isLoading ? (
+              <ActivityIndicator color="#fff" />
+            ) : (
+              <Text style={styles.enrollButtonText}>Enroll</Text>
+            )}
+          </TouchableOpacity>
+
+          {/* View Tutors */}
+          <TouchableOpacity
+            style={styles.viewTutorsButton}
+            onPress={() => fetchTutors(selectedSubject.id)}
+          >
+            <Text style={styles.viewTutorsText}>View Tutors</Text>
+          </TouchableOpacity>
+        </View>
+      )}
+
+      {/* Tutors List */}
+      {tutors.length > 0 && (
+        <ScrollView style={styles.tutorsContainer}>
+          <Text style={styles.selectedSubjectTitle}>Tutors Enrolled:</Text>
+          {tutors.map((tutor, index) => (
+            <View key={index} style={styles.tutorCard}>
+              <Text style={styles.tutorName}>{tutor.fullName}</Text>
+              <Text style={styles.tutorEmail}>{tutor.email}</Text>
+            </View>
+          ))}
+        </ScrollView>
+      )}
     </View>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-    padding: 20,
-    marginTop: -5,
-  },
-  searchContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#f1f1f1',
-    borderRadius: 10,
-    paddingHorizontal: 10,
-    marginBottom: 20,
-  },
-  searchIcon: {
-    marginRight: 10,
-  },
-  searchInput: {
-    flex: 1,
-    fontSize: 16,
-  },
-  addSubjectContainer: {
-    marginBottom: 20,
-  },
-  addSubjectInput: {
-    padding: 10,
-    borderWidth: 1,
-    borderColor: '#003366',
-    borderRadius: 5,
-    fontSize: 16,
-  },
-  addButton: {
-    backgroundColor: '#003366',
-    padding: 10,
-    borderRadius: 5,
-    alignItems: 'center',
-    marginBottom: 20,
-  },
-  addButtonText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: 'bold',
-  },
-  mySubjectsLabel: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#003366',
-    marginBottom: 10,
-  },
-  subjectsContainer: {
-    flex: 1,
-  },
-  subjectCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#fff',
-    borderRadius: 10,
-    borderWidth: 1,
-    borderColor: '#003366',
-    padding: 10,
-    marginBottom: 15,
-    position: 'relative',
-  },
-  subjectImage: {
-    width: 50,
-    height: 50,
-    borderRadius: 5,
-    marginRight: 10,
-  },
-  subjectTitle: {
-    fontSize: 16,
-    color: '#003366',
-    fontWeight: 'bold',
-    flex: 1,
-  },
-  deleteIcon: {
-    position: 'absolute',
-    right: 10,
-  },
-  bottomNav: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    padding: 10,
-    borderTopWidth: 1,
-    borderTopColor: '#f1f1f1',
-  },
+  container: { flex: 1, backgroundColor: '#fff', padding: 20 },
+  headerTitle: { fontSize: 24, fontWeight: 'bold', marginBottom: 20 },
+  subjectsContainer: { flexDirection: 'row', marginBottom: 20 },
+  subjectButton: { flex: 1, backgroundColor: '#003366', margin: 5, padding: 15 },
+  subjectButtonText: { color: '#fff', fontSize: 16, textAlign: 'center' },
+  enrollmentContainer: { alignItems: 'center', marginTop: 20 },
+  enrollButton: { backgroundColor: '#28a745', padding: 15, marginTop: 10 },
+  enrollButtonText: { color: '#fff', fontSize: 16, textAlign: 'center' },
+  viewTutorsButton: { backgroundColor: '#003366', marginTop: 10, padding: 15 },
+  viewTutorsText: { color: '#fff', textAlign: 'center' },
+  tutorsContainer: { marginTop: 20 },
+  tutorCard: { padding: 10, backgroundColor: '#f9f9f9', marginBottom: 10 },
+  tutorName: { fontSize: 16, fontWeight: 'bold' },
+  tutorEmail: { fontSize: 14, color: '#555' },
 });
 
-export default TutorSub;
+export default SubjectTutorsPage;
