@@ -14,6 +14,7 @@ import Settings from './components/Settings';
 import TutorDash from './components/TutorDash';
 import Schedule from './components/Schedule'
 import TutorSub from './components/TutorSub';
+import TutorSchedule from './components/TutorSchedule';
 
 const Stack = createStackNavigator();
 
@@ -97,7 +98,7 @@ export default function App() {
           options={{ headerShown: false }} 
         />
         <Stack.Screen 
-          name="Schedule" 
+          name="SchedulePage" 
           component={Schedule} 
           options={{ headerShown: false }} 
 />
@@ -111,6 +112,11 @@ export default function App() {
             color: '#003366'
           }} 
         />
+            <Stack.Screen 
+      name="TutorSchedule" 
+      component={TutorSchedule} 
+      options={{ headerShown: false }} 
+/>
       </Stack.Navigator>
     </NavigationContainer>
   );

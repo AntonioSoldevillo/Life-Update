@@ -68,7 +68,7 @@ const DashboardPage = ({ navigation }) => {
         <TouchableOpacity>
           <Ionicons name="person-outline" size={24} color="#808080" />
         </TouchableOpacity>
-        <TouchableOpacity onPress={() => navigation.navigate('Schedule')}>
+        <TouchableOpacity onPress={() => navigation.navigate('TutorSchedule')}>
           <Ionicons name="calendar-outline" size={24} color="#003366" />
         </TouchableOpacity>
         <TouchableOpacity onPress={() => navigation.navigate('TutorSub')}>

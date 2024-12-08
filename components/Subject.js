@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ActivityIndicator, ScrollView, TouchableOpacity } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
 import supabase from '../src/supabaseClient'; // Import Supabase client
 
 const SubjectTutorsPage = () => {
@@ -7,8 +8,8 @@ const SubjectTutorsPage = () => {
   const [selectedSubject, setSelectedSubject] = useState(null);
   const [tutors, setTutors] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
+  const navigation = useNavigation();
 
-  // Fetch all subjects from the database
   const fetchSubjects = async () => {
     try {
       const { data, error } = await supabase.from('subjects').select('*');
@@ -19,56 +20,45 @@ const SubjectTutorsPage = () => {
     }
   };
 
-  // Fetch tutors for the selected subject
   const fetchTutors = async (subjectId) => {
-    console.log('Selected Subject ID:', subjectId); // Debugging line
-    if (!subjectId) {
-      console.error('Invalid subject ID:', subjectId);
-      return;
-    }
-
-    setSelectedSubject(subjects.find((subject) => subject.subject_id === subjectId)); // Ensure correct subject is set
+    setSelectedSubject(subjects.find((subject) => subject.subject_id === subjectId));
     setIsLoading(true);
-    setTutors([]); // Clear previous tutors
+    setTutors([]);
 
     try {
-      // Fetch the tutor_ids for the given subject_id from the tutor_subjects table
       const { data: tutorSubjectData, error } = await supabase
         .from('tutor_subjects')
         .select('tutor_id')
-        .eq('subject_id', subjectId); // Match subject_id
+        .eq('subject_id', subjectId);
 
       if (error) throw error;
 
-      // Extract tutor_ids from the result
       const tutorIds = tutorSubjectData.map(item => item.tutor_id);
 
       if (tutorIds.length > 0) {
-        // Now fetch the details of the tutors from the tutors table using the tutor_ids
         const { data: tutorDetails, error: tutorError } = await supabase
           .from('tutors')
-          .select('user_id')
+          .select('tutor_id, user_id')
           .in('tutor_id', tutorIds);
 
         if (tutorError) throw tutorError;
 
-        // Fetch user details for all the tutors by joining the users table
         const userIds = tutorDetails.map(item => item.user_id);
         if (userIds.length > 0) {
           const { data: userDetails, error: userError } = await supabase
             .from('users')
-            .select('full_name, email')
-            .in('id', userIds); // Match user_id
+            .select('id, full_name, email')
+            .in('id', userIds);
 
           if (userError) throw userError;
 
-          // Map the users' details to the tutors
-          const formattedTutors = tutorDetails.map((tutor, index) => ({
-            full_name: userDetails[index].full_name,
-            email: userDetails[index].email,
+          const formattedTutors = tutorDetails.map((tutor) => ({
+            tutor_id: tutor.tutor_id,
+            full_name: userDetails.find((user) => user.id === tutor.user_id).full_name,
+            email: userDetails.find((user) => user.id === tutor.user_id).email,
           }));
 
-          setTutors(formattedTutors); // Set the fetched tutors
+          setTutors(formattedTutors);
         }
       }
     } catch (error) {
@@ -78,30 +68,25 @@ const SubjectTutorsPage = () => {
     }
   };
 
-  // Fetch subjects on component mount
   useEffect(() => {
     fetchSubjects();
   }, []);
 
   return (
     <View style={styles.container}>
-      {/* Header */}
       <Text style={styles.headerTitle}>Subjects</Text>
-
-      {/* Subject Buttons */}
       <View style={styles.subjectsContainer}>
         {subjects.map((subject) => (
           <TouchableOpacity
-            key={subject.subject_id} // Ensure subject_id is unique
+            key={subject.subject_id}
             style={styles.subjectButton}
-            onPress={() => fetchTutors(subject.subject_id)} // Pass the correct subject_id
+            onPress={() => fetchTutors(subject.subject_id)}
           >
             <Text style={styles.subjectButtonText}>{subject.subject_name}</Text>
           </TouchableOpacity>
         ))}
       </View>
 
-      {/* Tutors List */}
       <View style={styles.tutorsContainer}>
         {isLoading ? (
           <ActivityIndicator size="large" color="#003366" />
@@ -115,6 +100,12 @@ const SubjectTutorsPage = () => {
                 <View key={index} style={styles.tutorCard}>
                   <Text style={styles.tutorName}>{tutor.full_name}</Text>
                   <Text style={styles.tutorEmail}>{tutor.email}</Text>
+                  <TouchableOpacity
+                    style={styles.bookButton}
+                    onPress={() => navigation.navigate('SchedulePage', { tutorId: tutor.tutor_id })}
+                  >
+                    <Text style={styles.bookButtonText}>Book Tutor</Text>
+                  </TouchableOpacity>
                 </View>
               ))}
             </ScrollView>
@@ -138,6 +129,7 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#fff',
     padding: 20,
+    marginTop:30
   },
   headerTitle: {
     fontSize: 24,
