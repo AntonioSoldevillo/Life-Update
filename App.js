@@ -15,6 +15,10 @@ import TutorDash from './components/TutorDash';
 import Schedule from './components/Schedule'
 import TutorSub from './components/TutorSub';
 import TutorSchedule from './components/TutorSchedule';
+import BookingsInfo from './components/BookingsInfo'
+import AddSchedule from './components/AddSchedule';
+import EditSchedule from './components/EditSchedule';
+
 
 const Stack = createStackNavigator();
 
@@ -116,7 +120,17 @@ export default function App() {
       name="TutorSchedule" 
       component={TutorSchedule} 
       options={{ headerShown: false }} 
+      
 />
+<Stack.Screen 
+      name="BookingsInfo" 
+      component={BookingsInfo} 
+      options={{ headerShown: false }} 
+/>
+<Stack.Screen name="AddSchedule" component={AddSchedule} options={{ headerShown: false }}  />
+
+<Stack.Screen name="EditSchedule" component={EditSchedule} options={{ headerShown: false }}/>
+
       </Stack.Navigator>
     </NavigationContainer>
   );

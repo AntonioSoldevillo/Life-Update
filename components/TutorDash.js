@@ -48,7 +48,7 @@ const DashboardPage = ({ navigation }) => {
         <TouchableOpacity style={styles.card} onPress={() => navigation.navigate('Pending')}>
           <MaterialIcons name="pending-actions" size={32} color="#003366" />
           <View style={styles.cardText}>
-            <Text style={styles.cardTitle}>Pending Sessions</Text>
+            <Text style={styles.cardTitle}>Booking Request</Text>
             <Text style={styles.cardCount}>2</Text>
           </View>
         </TouchableOpacity>

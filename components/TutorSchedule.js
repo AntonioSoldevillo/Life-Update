@@ -1,141 +1,129 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Platform, Alert } from 'react-native';
-import { Calendar } from 'react-native-calendars';
-import DateTimePicker from '@react-native-community/datetimepicker';
-import { Ionicons } from '@expo/vector-icons'; // For back button and navigation icons
+import React, { useState, useEffect } from 'react';
+import { View, Text, Alert, StyleSheet, FlatList, TouchableOpacity } from 'react-native';
+import Icon from 'react-native-vector-icons/MaterialIcons'; // Import the Icon component
 import supabase from '../src/supabaseClient';
 
-const TutorSchedule = ({ tutorId, navigation }) => {
-  const [selectedDate, setSelectedDate] = useState('');
-  const [selectedTime, setSelectedTime] = useState(new Date());
-  const [showTimePicker, setShowTimePicker] = useState(false);
-  const [error, setError] = useState(null);
+const TutorSchedule = ({ navigation }) => {
+  const [schedules, setSchedules] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  const handleDateSelect = (date) => {
-    setSelectedDate(date.dateString); // Update selected date from the calendar
-  };
-
-  const handleTimeChange = (event, selectedDate) => {
-    setShowTimePicker(Platform.OS === 'ios' ? true : false); // Hide time picker on iOS after selection
-    if (selectedDate) {
-      setSelectedTime(selectedDate);
-    }
-  };
-
-  const handleSubmit = async () => {
-    if (!selectedDate || !selectedTime) {
-      setError('Please select a valid date and time');
-      return;
-    }
-
-    const availabilityDateTime = new Date(
-      `${selectedDate}T${selectedTime.getHours()}:${selectedTime.getMinutes()}:00`
-    ).toISOString(); // Combine the date and time
-
+  // Fetch schedules for the logged-in tutor
+  const fetchSchedules = async () => {
+    setLoading(true); // Start loading
     try {
+      // Get the current logged-in user
       const { data: { user }, error: userError } = await supabase.auth.getUser();
 
-      if (userError) {
-        setError('Error retrieving user: ' + userError.message);
-        return;
-      }
+      if (userError) throw new Error('Failed to retrieve logged-in user');
+      if (!user) throw new Error('No user logged in');
 
-      if (!user) {
-        setError('You must be logged in to create a schedule');
-        return;
-      }
-
-      // Fetch the tutor_id from the tutors table using the user.id
+      // Fetch the tutor_id using the user.id
       const { data: tutorData, error: tutorError } = await supabase
         .from('tutors')
         .select('tutor_id')
         .eq('user_id', user.id)
         .single();
 
-      if (tutorError || !tutorData) {
-        setError('Tutor ID not found for this user');
-        return;
-      }
+      if (tutorError || !tutorData) throw new Error('Tutor ID not found for this user');
 
-      // Insert the schedule into the schedule table
-      const { data, error } = await supabase.from('schedule').insert([
-        {
-          tutor_id: tutorData.tutor_id, // Use the retrieved tutor_id
-          availability_date_time: availabilityDateTime,
-        },
-      ]);
+      // Fetch the schedules for the tutor
+      const { data: schedulesData, error: schedulesError } = await supabase
+        .from('schedule')
+        .select('*')
+        .eq('tutor_id', tutorData.tutor_id);
 
-      if (error) {
-        setError('Error creating schedule: ' + error.message);
-      } else {
-        navigation.goBack(); // Navigate back after creating the schedule
-      }
+      if (schedulesError) throw new Error('Failed to fetch schedules');
+
+      setSchedules(schedulesData || []);
     } catch (err) {
-      setError('An error occurred: ' + err.message);
+      console.error('Error fetching schedules:', err.message);
+      Alert.alert('Error', err.message);
+    } finally {
+      setLoading(false); // Stop loading
     }
   };
 
+  useEffect(() => {
+    fetchSchedules();
+  }, []);
+
+  // Delete a schedule
+  const handleDelete = async (scheduleId) => {
+    try {
+      const { error } = await supabase
+        .from('schedule')
+        .delete()
+        .eq('schedule_id', scheduleId); // Adjust the column name if necessary
+
+      if (error) throw new Error('Failed to delete schedule');
+
+      Alert.alert('Success', 'Schedule deleted successfully');
+      fetchSchedules(); // Refresh the schedules list
+    } catch (err) {
+      console.error('Error deleting schedule:', err.message);
+      Alert.alert('Error', err.message);
+    }
+  };
+
+  // Navigate to Edit Schedule screen
+  const handleEdit = (schedule) => {
+    navigation.navigate('EditSchedule', { schedule }); // Pass the schedule to the EditSchedule screen
+  };
+
+  // Render a schedule item
+  const renderScheduleItem = ({ item }) => (
+    <View style={styles.scheduleItem}>
+      <Text style={styles.scheduleText}>
+        {new Date(item.availability_date_time).toLocaleString()} {/* Format the date */}
+      </Text>
+
+      <View style={styles.buttonContainer}>
+        {/* Edit Button */}
+        <TouchableOpacity
+          style={styles.editButton}
+          onPress={() => handleEdit(item)}
+        >
+          <Text style={styles.buttonText}>Edit</Text>
+        </TouchableOpacity>
+
+        {/* Delete Button */}
+        <TouchableOpacity
+          style={styles.deleteButton}
+          onPress={() => handleDelete(item.schedule_id)}
+        >
+          <Text style={styles.buttonText}>Delete</Text>
+        </TouchableOpacity>
+      </View>
+    </View>
+  );
+
   return (
     <View style={styles.container}>
-      {/* Back Button */}
+      {/* Back Arrow Icon */}
       <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
-        <Ionicons name="arrow-back" size={24} color="#003366" />
+        <Icon name="arrow-back" size={30} color="#00796b" />
       </TouchableOpacity>
 
-      <Text style={styles.title}>Create a New Schedule</Text>
+      <Text style={styles.title}>Your Schedules</Text>
 
-      {/* Calendar to select a date */}
-      <Calendar
-        onDayPress={handleDateSelect}
-        markedDates={{
-          [selectedDate]: { selected: true, selectedColor: 'blue', selectedTextColor: 'white' },
-        }}
-      />
-
-      {/* Time Picker Button */}
-      <TouchableOpacity
-        style={[styles.button, { marginTop: 20 }]}
-        onPress={() => setShowTimePicker(true)}
-      >
-        <Text style={styles.buttonText}>Select Time</Text>
-      </TouchableOpacity>
-
-      {/* Time Picker */}
-      {showTimePicker && (
-        <DateTimePicker
-          value={selectedTime}
-          mode="time"
-          display="default"
-          onChange={handleTimeChange}
+      {loading ? (
+        <Text>Loading schedules...</Text>
+      ) : schedules.length === 0 ? (
+        <Text>No schedules found.</Text>
+      ) : (
+        <FlatList
+          data={schedules}
+          keyExtractor={(item) => item.schedule_id.toString()}
+          renderItem={renderScheduleItem}
         />
       )}
 
-      {/* Error message */}
-      {error && <Text style={styles.error}>{error}</Text>}
-
-      {/* Save Schedule Button */}
-      <TouchableOpacity style={[styles.button, { marginTop: 15 }]} onPress={handleSubmit}>
-        <Text style={styles.buttonText}>Save Schedule</Text>
+      <TouchableOpacity
+        style={styles.addButton}
+        onPress={() => navigation.navigate('AddSchedule')}
+      >
+        <Text style={styles.addButtonText}>Add Schedule</Text>
       </TouchableOpacity>
-
-      {/* Bottom Navigation Bar */}
-      <View style={styles.bottomNav}>
-        <TouchableOpacity onPress={() => navigation.navigate('TutorDashboard')}>
-          <Ionicons name="home-outline" size={24} color="#003366" />
-        </TouchableOpacity>
-        <TouchableOpacity>
-          <Ionicons name="person-outline" size={24} color="#808080" />
-        </TouchableOpacity>
-        <TouchableOpacity onPress={() => navigation.navigate('Schedule')}>
-          <Ionicons name="calendar-outline" size={24} color="#003366" />
-        </TouchableOpacity>
-        <TouchableOpacity>
-          <Ionicons name="book-outline" size={24} color="#003366" />
-        </TouchableOpacity>
-        <TouchableOpacity onPress={() => navigation.navigate('Settings')}>
-          <Ionicons name="settings-outline" size={24} color="#808080" />
-        </TouchableOpacity>
-      </View>
     </View>
   );
 };
@@ -145,46 +133,62 @@ const styles = StyleSheet.create({
     flex: 1,
     padding: 20,
     backgroundColor: '#f9f9f9',
-    marginTop: 30,
+    marginTop:30
   },
   backButton: {
-    marginBottom: 20,
+    position: 'absolute',
+    top: 23, // Adjust the position to your needs
+    left: 10, // Adjust the position to your needs
+    zIndex: 1,
   },
   title: {
     fontSize: 24,
     fontWeight: 'bold',
     marginBottom: 20,
     textAlign: 'center',
-    color: '#003366',
   },
-  error: {
-    color: 'red',
-    marginVertical: 10,
-    textAlign: 'center',
+  scheduleItem: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    padding: 10,
+    marginVertical: 5,
+    backgroundColor: '#e0f7fa',
+    borderRadius: 5,
   },
-  button: {
-    backgroundColor: '#003366', // Dark blue color
-    padding: 15,
-    borderRadius: 8,
+  scheduleText: {
+    fontSize: 16,
+  },
+  buttonContainer: {
+    flexDirection: 'row',
     alignItems: 'center',
+  },
+  editButton: {
+    backgroundColor: '#ff9800', // Orange color for Edit
+    paddingVertical: 5,
+    paddingHorizontal: 10,
+    borderRadius: 5,
+    marginRight: 10,
+  },
+  deleteButton: {
+    backgroundColor: '#f44336', // Red color for Delete
+    paddingVertical: 5,
+    paddingHorizontal: 10,
+    borderRadius: 5,
   },
   buttonText: {
-    color: 'white',
-    fontSize: 16,
-    fontWeight: 'bold',
+    color: '#fff',
+    fontSize: 14,
   },
-  bottomNav: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
+  addButton: {
+    marginTop: 20,
+    backgroundColor: '#00796b',
+    padding: 15,
+    borderRadius: 5,
     alignItems: 'center',
-    backgroundColor: '#ffffff',
-    paddingVertical: 15,
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    borderTopWidth: 1,
-    borderTopColor: '#ccc',
+  },
+  addButtonText: {
+    color: '#fff',
+    fontSize: 16,
   },
 });
 
