@@ -74,15 +74,16 @@ const DashboardPage = ({ navigation }) => {
         <TouchableOpacity>
           <Ionicons name="home-outline" size={24} color="#003366" />
         </TouchableOpacity>
-        <TouchableOpacity>
-          <Ionicons name="person-outline" size={24} color="#808080" />
-        </TouchableOpacity>
+        <TouchableOpacity onPress={() => navigation.navigate('TuteeProfile')}>
+  <Ionicons name="person-outline" size={24} color="#808080" />
+</TouchableOpacity>
         <TouchableOpacity onPress={() => navigation.navigate('Subjects')}>
           <Ionicons name="book-outline" size={24} color="#808080" />
         </TouchableOpacity>
-        <TouchableOpacity>
-          <Ionicons name="chatbubble-outline" size={24} color="#808080" />
-        </TouchableOpacity>
+        <TouchableOpacity onPress={() => navigation.navigate('Messages')}>
+  <Ionicons name="chatbubble-outline" size={24} color="#808080" />
+</TouchableOpacity>
+
         <TouchableOpacity onPress={() => navigation.navigate('Settings')}>
           <Ionicons name="settings-outline" size={24} color="#808080" />
         </TouchableOpacity>
@@ -209,7 +210,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    padding: 10,
+    padding: 9,
     borderTopWidth: 1,
     borderTopColor: '#f1f1f1',
   },

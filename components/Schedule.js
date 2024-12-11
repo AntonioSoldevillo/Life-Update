@@ -3,10 +3,9 @@ import { View, Text, StyleSheet, ActivityIndicator, FlatList, TouchableOpacity, 
 import supabase from '../src/supabaseClient';
 
 const SchedulePage = ({ route, navigation }) => {
-  const { tutorId } = route.params; // tutorId is passed from the previous screen
+  const { tutorId } = route.params; // Passed from the previous screen
   const [schedules, setSchedules] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [subjectId, setSubjectId] = useState(null); // State to store subject_id
 
   // Fetch schedules for the tutor
   const fetchSchedules = async () => {
@@ -15,29 +14,28 @@ const SchedulePage = ({ route, navigation }) => {
         .from('schedule')
         .select('schedule_id, availability_date_time')
         .eq('tutor_id', tutorId);
-  
+
       if (error) throw error;
-  
-      // Check if the schedule is already booked
+
+      // Check if each schedule is already booked
       const schedulesWithStatus = await Promise.all(
         data.map(async (schedule) => {
           const { data: bookingData, error: bookingError } = await supabase
             .from('bookings')
             .select('booking_id')
             .eq('schedule_id', schedule.schedule_id)
-            .single(); // Check if there is a booking for this schedule
-  
+            .single();
+
           if (bookingError) {
             console.error('Error checking booking status:', bookingError.message);
-            return { ...schedule, status: 'available' }; // No booking, status is available
+            return { ...schedule, status: 'available' }; // Assume no booking
           }
-  
-          // If booking exists, mark it as booked
-          return { ...schedule, status: 'booked' };
+
+          return { ...schedule, status: 'booked' }; // If booking exists
         })
       );
-  
-      setSchedules(schedulesWithStatus); // Update state with schedules and status
+
+      setSchedules(schedulesWithStatus); // Update state with schedules
     } catch (error) {
       console.error('Error fetching schedules:', error.message);
     } finally {
@@ -49,29 +47,25 @@ const SchedulePage = ({ route, navigation }) => {
   const fetchTuteeId = async () => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
-  
+
       if (!user || !user.id) {
-        console.log('User is not logged in.');
         Alert.alert('Error', 'User not logged in. Please log in to continue.');
         return null;
       }
-  
-      console.log('User ID:', user.id);
-  
-      // Query the tutees table to find the tutee_id associated with the user_id
+
       const { data, error } = await supabase
         .from('tutees')
         .select('tutee_id')
         .eq('user_id', user.id)
         .single();
-  
+
       if (error) {
         console.error('Error fetching tutee_id:', error.message);
         Alert.alert('Error', 'Failed to fetch tutee information.');
         return null;
       }
-  
-      return data?.tutee_id; // Return the tutee_id if found
+
+      return data?.tutee_id;
     } catch (err) {
       console.error('Error in fetchTuteeId:', err.message);
       Alert.alert('Error', 'Failed to fetch tutee information.');
@@ -84,8 +78,8 @@ const SchedulePage = ({ route, navigation }) => {
     try {
       const { data, error } = await supabase
         .from('tutor_subjects') // Query the tutor_subjects table
-        .select('subject_id') // Select the subject_id column
-        .eq('tutor_id', tutorId); // Match the tutor_id
+        .select('subject_id')
+        .eq('tutor_id', tutorId);
 
       if (error) {
         console.error('Error fetching subject_id:', error.message);
@@ -95,14 +89,12 @@ const SchedulePage = ({ route, navigation }) => {
 
       if (data.length === 0) {
         Alert.alert('Error', 'No subjects found for this tutor.');
-        return null; // No subjects found
+        return null;
       }
 
-      // If multiple subjects are found, choose the first one (or handle accordingly)
-      const subjectId = data[0].subject_id;
-      console.log('Fetched subject data:', subjectId);
+      const subjectId = data[0].subject_id; // Get the first subject_id
+      console.log('Fetched Subject ID:', subjectId); // Log for debugging
       return subjectId;
-
     } catch (err) {
       console.error('Error in fetchSubjectId:', err.message);
       Alert.alert('Error', 'Failed to fetch subject information.');
@@ -113,29 +105,29 @@ const SchedulePage = ({ route, navigation }) => {
   // Handle booking a slot
   const handleBooking = async (scheduleId, availabilityDateTime) => {
     console.log('Booking button pressed');
-    
+
     const tuteeId = await fetchTuteeId();
     const fetchedSubjectId = await fetchSubjectId(); // Fetch subject_id
-  
-    if (!tuteeId || !fetchedSubjectId) return; // Ensure subject_id and tuteeId are available
-  
+
+    if (!tuteeId || !fetchedSubjectId) return;
+
     try {
-      // Insert booking without manually specifying booking_id (auto-increment handled by DB)
       const { data, error } = await supabase
         .from('bookings')
         .insert([{
           tutor_id: tutorId,
           tutee_id: tuteeId,
-          subject_id: fetchedSubjectId, // Use fetched subject_id
+          subject_id: fetchedSubjectId,
           schedule_id: scheduleId,
           booking_date_time: availabilityDateTime,
         }]);
-  
+
       if (error) {
         Alert.alert('Error', 'Failed to book the slot.');
         console.error('Insert Error:', error.message);
       } else {
         Alert.alert('Success', 'Your booking has been confirmed!');
+        console.log('Booking Data:', data); // Debug inserted booking
         navigation.navigate('Dashboard');
       }
     } catch (err) {
@@ -143,7 +135,6 @@ const SchedulePage = ({ route, navigation }) => {
       console.error(err.message);
     }
   };
-  
 
   useEffect(() => {
     fetchSchedules();

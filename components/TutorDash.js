@@ -52,10 +52,10 @@ const DashboardPage = ({ navigation }) => {
             <Text style={styles.cardCount}>2</Text>
           </View>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.card} onPress={() => navigation.navigate('ViewTutees')}>
-          <Ionicons name="people-outline" size={32} color="#003366" />
+        <TouchableOpacity style={styles.card} onPress={() => navigation.navigate('MySubjectsDashboard')}>
+          <Ionicons name="book" size={32} color="#003366" />
           <View style={styles.cardText}>
-            <Text style={styles.cardTitle}>View Tutees</Text>
+            <Text style={styles.cardTitle}>My Subjects</Text>
           </View>
         </TouchableOpacity>
       </View>
@@ -65,16 +65,16 @@ const DashboardPage = ({ navigation }) => {
         <TouchableOpacity>
           <Ionicons name="home-outline" size={24} color="#003366" />
         </TouchableOpacity>
-        <TouchableOpacity>
+        <TouchableOpacity onPress={() => navigation.navigate('TutorProfile')}>
           <Ionicons name="person-outline" size={24} color="#808080" />
         </TouchableOpacity>
         <TouchableOpacity onPress={() => navigation.navigate('TutorSchedule')}>
-          <Ionicons name="calendar-outline" size={24} color="#003366" />
+          <Ionicons name="calendar-outline" size={24} color="#808080" />
         </TouchableOpacity>
         <TouchableOpacity onPress={() => navigation.navigate('TutorSub')}>
-          <Ionicons name="book-outline" size={24} color="#003366" />
+          <Ionicons name="book-outline" size={24} color="#808080" />
         </TouchableOpacity>
-        <TouchableOpacity onPress={() => navigation.navigate('Settings')}>
+        <TouchableOpacity onPress={() => navigation.navigate('TutorSettings')}>
           <Ionicons name="settings-outline" size={24} color="#808080" />
         </TouchableOpacity>
         {/* New Subject Icon */}

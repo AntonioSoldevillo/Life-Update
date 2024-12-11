@@ -18,6 +18,12 @@ import TutorSchedule from './components/TutorSchedule';
 import BookingsInfo from './components/BookingsInfo'
 import AddSchedule from './components/AddSchedule';
 import EditSchedule from './components/EditSchedule';
+import TuteeProfile from './components/TuteeProfile';
+import MessagePage from './components/Message';
+import TutorSettings from './components/TutorSettings';
+import TutorProfile from './components/TutorProfile';
+import ForgotPassword from './components/ForgotPassword';
+import MySubjectsDashboard from './components/MySubjectsDashboard';
 
 
 const Stack = createStackNavigator();
@@ -110,11 +116,7 @@ export default function App() {
 <Stack.Screen 
           name="TutorSub" 
           component={TutorSub} 
-          options={{
-            title: 'My Subjects',
-            headerBackTitleVisible: false,
-            color: '#003366'
-          }} 
+          options={{ headerShown: false }}
         />
             <Stack.Screen 
       name="TutorSchedule" 
@@ -130,6 +132,33 @@ export default function App() {
 <Stack.Screen name="AddSchedule" component={AddSchedule} options={{ headerShown: false }}  />
 
 <Stack.Screen name="EditSchedule" component={EditSchedule} options={{ headerShown: false }}/>
+
+<Stack.Screen name="TuteeProfile" component={TuteeProfile} options={{ headerShown: false }} />
+<Stack.Screen
+          name="Messages"
+          component={MessagePage}
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen
+          name="TutorSettings"
+          component={TutorSettings}
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen
+          name="TutorProfile"
+          component={TutorProfile}
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen
+          name="ForgotPassword"
+          component={ForgotPassword}
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen
+          name="MySubjectsDashboard"
+          component={MySubjectsDashboard}
+          options={{ headerShown: false }}
+        />
 
       </Stack.Navigator>
     </NavigationContainer>

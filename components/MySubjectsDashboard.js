@@ -129,7 +129,7 @@ const SubjectTutorsPage = ({ navigation }) => {
         <TouchableOpacity onPress={() => navigation.goBack()}>
           <Icon name="arrow-back" size={24} color="#003366" />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Subjects</Text>
+        <Text style={styles.headerTitle}> My Subjects</Text>
       </View>
 
       {/* Search Bar */}
@@ -159,22 +159,15 @@ const SubjectTutorsPage = ({ navigation }) => {
       {/* Enrollment Section */}
       {selectedSubject && (
         <View style={styles.enrollmentContainer}>
-          <Text style={styles.selectedSubjectTitle}>
-            Enroll in {selectedSubject.name}?
-          </Text>
-          <TouchableOpacity
-            style={styles.enrollButton}
-            onPress={() => enrollInSubject(selectedSubject.id)}
-            disabled={isLoading}
-          >
-            {isLoading ? (
-              <ActivityIndicator color="#fff" />
-            ) : (
-              <Text style={styles.enrollButtonText}>Enroll</Text>
-            )}
-          </TouchableOpacity>
 
-          {/* View Tutors */}
+         
+
+          <TouchableOpacity
+            style={styles.viewTutorsButton}
+            onPress={() => fetchTutors(selectedSubject.id)}
+          >
+            <Text style={styles.viewTutorsText}>View Tutors</Text>
+          </TouchableOpacity>
           
 
         </View>
@@ -192,26 +185,7 @@ const SubjectTutorsPage = ({ navigation }) => {
           ))}
         </ScrollView>
       )}
-      {/* Bottom Navigation Bar */}
-      <View style={styles.bottomNav}>
-      <TouchableOpacity onPress={() => navigation.navigate('TutorDashboard')}>
-          <Ionicons name="home-outline" size={24} color="#808080" />
-        </TouchableOpacity>
-        <TouchableOpacity onPress={() => navigation.navigate('TutorProfile')}>
-          <Ionicons name="person-outline" size={24} color="#808080" />
-        </TouchableOpacity>
-        <TouchableOpacity onPress={() => navigation.navigate('TutorSchedule')}>
-          <Ionicons name="calendar-outline" size={24} color="#808080" />
-        </TouchableOpacity>
-        <TouchableOpacity onPress={() => navigation.navigate('TutorSub')}>
-          <Ionicons name="book-outline" size={24} color="#003366" />
-        </TouchableOpacity>
-        <TouchableOpacity onPress={() => navigation.navigate('TutorSettings')}>
-          <Ionicons name="settings-outline" size={24} color="#808080" />
-        </TouchableOpacity>
-        {/* New Subject Icon */}
-        
-      </View>
+     
     </View>
   );
 };
@@ -268,8 +242,8 @@ const styles = StyleSheet.create({
   selectedSubjectTitle:{
     marginBottom:10
   },
-  viewTutorsButton: { backgroundColor: '#003366', marginTop: 10, padding: 15, paddingHorizontal:82, borderRadius:10 },
-  viewTutorsText: { color: '#fff', textAlign: 'center', fontSize: 15 },
+  viewTutorsButton: { backgroundColor: '#FFC700', marginTop: 40, padding: 15, paddingHorizontal:100, borderRadius:10 },
+  viewTutorsText: { color: '#000', textAlign: 'center', fontSize: 15 },
   tutorsContainer: { marginTop: 20 },
   tutorCard: { padding: 10, backgroundColor: '#f9f9f9', marginBottom: 10 },
   tutorName: { fontSize: 16, fontWeight: 'bold' },

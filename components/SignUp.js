@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, StyleSheet, Alert, TouchableOpacity, ActivityIndicator } from 'react-native';
+import { View, Text, TextInput, StyleSheet, Alert, TouchableOpacity } from 'react-native';
 import RNPickerSelect from 'react-native-picker-select';
 import { Button } from 'react-native-paper';
 import { Ionicons } from '@expo/vector-icons';
@@ -36,14 +36,12 @@ const SignUpPage = ({ navigation }) => {
   
       await supabase.auth.signOut();
   
-      const { error: insertUserError } = await supabase.from('users').insert([
-        {
-          id: userId,
-          full_name: fullName,
-          role: role,
-          email: email,
-        },
-      ]);
+      const { error: insertUserError } = await supabase.from('users').insert([{
+        id: userId,
+        full_name: fullName,
+        role: role,
+        email: email,
+      }]);
   
       if (insertUserError) {
         Alert.alert('Database Error', insertUserError.message);
@@ -52,11 +50,9 @@ const SignUpPage = ({ navigation }) => {
       }
   
       if (role === 'Tutee') {
-        const { error: insertTuteeError } = await supabase.from('tutees').insert([
-          {
-            user_id: userId,
-          },
-        ]);
+        const { error: insertTuteeError } = await supabase.from('tutees').insert([{
+          user_id: userId,
+        }]);
   
         if (insertTuteeError) {
           Alert.alert('Database Error', insertTuteeError.message);
@@ -64,11 +60,9 @@ const SignUpPage = ({ navigation }) => {
           return;
         }
       } else if (role === 'Tutor') {
-        const { error: insertTutorError } = await supabase.from('tutors').insert([
-          {
-            user_id: userId,
-          },
-        ]);
+        const { error: insertTutorError } = await supabase.from('tutors').insert([{
+          user_id: userId,
+        }]);
   
         if (insertTutorError) {
           Alert.alert('Database Error', insertTutorError.message);
@@ -88,6 +82,11 @@ const SignUpPage = ({ navigation }) => {
 
   return (
     <View style={styles.container}>
+      {/* Back Button */}
+      <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+        <Ionicons name="arrow-back" size={24} color="#003366" />
+      </TouchableOpacity>
+
       <Text style={styles.title}>Sign Up</Text>
 
       <TextInput
@@ -158,6 +157,13 @@ const styles = StyleSheet.create({
     padding: 20,
     justifyContent: 'center',
     backgroundColor: '#fff',
+    marginTop: 10
+  },
+  backButton: {
+    position: 'absolute',
+    top: 40,
+    left: 20,
+    zIndex: 1,
   },
   title: {
     fontSize: 36,

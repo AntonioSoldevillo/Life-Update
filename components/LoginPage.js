@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { Button, TextInput, Checkbox } from 'react-native-paper';
-import { Ionicons } from '@expo/vector-icons'; // For eye icon
+import { Ionicons } from '@expo/vector-icons'; // For icons
 import supabase from '../src/supabaseClient';  // Default import instead of named import
 
 const LoginPage = ({ navigation }) => {
@@ -17,48 +17,48 @@ const LoginPage = ({ navigation }) => {
       alert('Please enter both email and password');
       return;
     }
-  
+
     try {
       // Sign in with Supabase
       const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
-  
+
       if (authError) {
         console.error('Login error:', authError.message);
         setErrorMessage(authError.message);
         return;
       }
-  
+
       const userId = authData.user.id;
-  
+
       // Fetch user details from `users` table
       const { data: userData, error: userError } = await supabase
         .from('users')
         .select('*')
         .eq('id', userId)
         .single();
-  
+
       if (userError) {
         console.error('Error fetching user:', userError.message);
         setErrorMessage('Error fetching user details: ' + userError.message);
         return;
       }
-  
+
       // Check if the user is also in the `tutors` table
       const { data: tutorData, error: tutorError } = await supabase
         .from('tutors')
         .select('*')
         .eq('user_id', userId)
         .single();
-  
+
       if (tutorError && tutorError.code !== 'PGRST116') { // Ignore "no rows found" errors
         console.error('Error checking tutor role:', tutorError.message);
         setErrorMessage('Error checking tutor role: ' + tutorError.message);
         return;
       }
-  
+
       // Determine where to navigate based on role
       if (tutorData) {
         navigation.navigate('TutorDashboard'); // Tutor dashboard
@@ -70,7 +70,6 @@ const LoginPage = ({ navigation }) => {
       setErrorMessage('An unexpected error occurred: ' + error.message);
     }
   };
-  
 
   useEffect(() => {
     // Listen for authentication state changes
@@ -79,15 +78,16 @@ const LoginPage = ({ navigation }) => {
         navigation.navigate('Dashboard'); // Adjust the destination as needed
       }
     });
-  
+
     // Clean up the listener when the component unmounts
     return () => {
       authListener?.unsubscribe(); // Use unsubscribe() to clean up
     };
   }, [navigation]);
+
   return (
     <View style={styles.container}>
-      <Image source={require('../assets/logo.png')} style={styles.logo} />
+      <Ionicons name="book-outline" size={80} color="#003366" style={styles.logoIcon} />
       <Text style={styles.title}>TutorLink</Text>
 
       {/* Email input */}
@@ -135,9 +135,9 @@ const LoginPage = ({ navigation }) => {
       </View>
 
       {/* Forgot password link */}
-      <TouchableOpacity>
-        <Text style={styles.forgotPassword}>Forgot password?</Text>
-      </TouchableOpacity>
+      <TouchableOpacity onPress={() => navigation.navigate('ForgotPassword')}>
+  <Text style={styles.forgotPassword}>Forgot password?</Text>
+</TouchableOpacity>
 
       {/* Login button */}
       <Button mode="contained" onPress={handleLogin} style={styles.button}>
@@ -171,9 +171,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     backgroundColor: '#fff',
   },
-  logo: {
-    width: 80,
-    height: 80,
+  logoIcon: {
     alignSelf: 'center',
     marginBottom: 20,
   },
@@ -231,6 +229,8 @@ const styles = StyleSheet.create({
   },
   socialButton: {
     marginBottom: 10,
+    BackgroundColor:'#003366',
+    color:'#003366'
   },
   errorText: {
     color: 'red',

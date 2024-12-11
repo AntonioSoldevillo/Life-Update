@@ -101,7 +101,7 @@ const TutorSchedule = ({ navigation }) => {
     <View style={styles.container}>
       {/* Back Arrow Icon */}
       <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
-        <Icon name="arrow-back" size={30} color="#00796b" />
+        <Icon name="arrow-back" size={30} color="#003366" />
       </TouchableOpacity>
 
       <Text style={styles.title}>Your Schedules</Text>
@@ -146,6 +146,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     marginBottom: 20,
     textAlign: 'center',
+    color:'#003366'
   },
   scheduleItem: {
     flexDirection: 'row',
@@ -163,7 +164,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   editButton: {
-    backgroundColor: '#ff9800', // Orange color for Edit
+    backgroundColor: '#FFC700', // Orange color for Edit
     paddingVertical: 5,
     paddingHorizontal: 10,
     borderRadius: 5,
@@ -181,7 +182,7 @@ const styles = StyleSheet.create({
   },
   addButton: {
     marginTop: 20,
-    backgroundColor: '#00796b',
+    backgroundColor: '#003366',
     padding: 15,
     borderRadius: 5,
     alignItems: 'center',

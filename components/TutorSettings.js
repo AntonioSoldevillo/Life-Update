@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, TouchableOpacity, Switch, ScrollView, Alert } f
 import { Ionicons } from '@expo/vector-icons';
 import supabase from '../src/supabaseClient'; // Import supabase client
 
-const SettingsPage = ({ navigation }) => {
+const TutorSettings = ({ navigation }) => {
   const [isDarkMode, setIsDarkMode] = useState(false);
 
   const handleLogout = async () => {
@@ -89,7 +89,11 @@ const SettingsPage = ({ navigation }) => {
           <Ionicons name="chevron-forward" size={20} color="#003366" />
         </View>
 
-       
+        {/* Schedule Management Section (Specific for Tutors) */}
+        <View style={styles.settingSection}>
+          <Text style={styles.optionText}>Manage Schedule</Text>
+          <Ionicons name="chevron-forward" size={20} color="#003366" />
+        </View>
 
         {/* Logout Section */}
         <TouchableOpacity style={styles.settingSection} onPress={handleLogout}>
@@ -98,23 +102,24 @@ const SettingsPage = ({ navigation }) => {
         </TouchableOpacity>
       </ScrollView>
 
-      {/* Bottom Navigation */}
       <View style={styles.bottomNav}>
-        <TouchableOpacity onPress={() => navigation.navigate('Dashboard')}>
+      <TouchableOpacity onPress={() => navigation.navigate('TutorDashboard')}>
           <Ionicons name="home-outline" size={24} color="#808080" />
         </TouchableOpacity>
-        <TouchableOpacity onPress={() => navigation.navigate('TuteeProfile')}>
+        <TouchableOpacity onPress={() => navigation.navigate('TutorProfile')}>
           <Ionicons name="person-outline" size={24} color="#808080" />
         </TouchableOpacity>
-        <TouchableOpacity onPress={() => navigation.navigate('Subjects')}>
+        <TouchableOpacity onPress={() => navigation.navigate('TutorSchedule')}>
+          <Ionicons name="calendar-outline" size={24} color="#808080" />
+        </TouchableOpacity>
+        <TouchableOpacity onPress={() => navigation.navigate('TutorSub')}>
           <Ionicons name="book-outline" size={24} color="#808080" />
         </TouchableOpacity>
-        <TouchableOpacity onPress={() => navigation.navigate('Messages')}>
-  <Ionicons name="chatbubble-outline" size={24} color="#808080" />
-</TouchableOpacity>
-        <TouchableOpacity onPress={() => navigation.navigate('Settings')}>
+        <TouchableOpacity onPress={() => navigation.navigate('TutorSettings')}>
           <Ionicons name="settings-outline" size={24} color="#003366" />
         </TouchableOpacity>
+        {/* New Subject Icon */}
+        
       </View>
     </View>
   );
@@ -188,4 +193,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default SettingsPage;
+export default TutorSettings;
