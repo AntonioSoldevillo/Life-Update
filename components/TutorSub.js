@@ -13,6 +13,7 @@ import Icon from 'react-native-vector-icons/Ionicons';
 import supabase from '../src/supabaseClient';
 import { MaterialIcons, Ionicons, FontAwesome } from '@expo/vector-icons';
 
+
 const SubjectTutorsPage = ({ navigation }) => {
   const [selectedSubject, setSelectedSubject] = useState(null);
   const [tutors, setTutors] = useState([]);
@@ -217,9 +218,9 @@ const SubjectTutorsPage = ({ navigation }) => {
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#fff', padding: 20, marginTop: 30 },
-  headerContainer: { flexDirection: 'row', alignItems: 'center', marginBottom: 10 },
-  headerTitle: { fontSize: 24, fontWeight: 'bold', marginLeft: 10, color: '#003366' },
+  container: { flex: 1, backgroundColor: '#fff', padding: 20, paddingTop: 30 },
+ headerContainer: { flexDirection: 'row', alignItems: 'center', paddingVertical: 10 },
+  headerTitle: { fontSize: 24, fontWeight: 'bold', marginLeft: -200, color: '#003366' },
   searchBar: {
     height: 50,
     borderColor: '#ccc',

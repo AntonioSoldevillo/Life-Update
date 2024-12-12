@@ -107,7 +107,7 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: 'bold',
     color: '#003366',
-    marginLeft: 10,
+    marginLeft: -230,
   },
   bookingContainer: {
     backgroundColor: '#ffffff',

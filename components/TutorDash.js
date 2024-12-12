@@ -1,8 +1,39 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, Image, TouchableOpacity } from 'react-native';
-import { MaterialIcons, Ionicons, FontAwesome } from '@expo/vector-icons';
+import { MaterialIcons, Ionicons } from '@expo/vector-icons';
+import supabase from '../src/supabaseClient'; // Ensure the correct path
 
 const DashboardPage = ({ navigation }) => {
+  const [userData, setUserData] = useState({ name: '', email: '' });
+
+  useEffect(() => {
+    const fetchUserData = async () => {
+      try {
+        // Get the logged-in user's ID
+        const { data: { user }, error: userError } = await supabase.auth.getUser();
+        if (userError) throw userError;
+
+        const userId = user.id;
+
+        // Fetch tutor's details (name and email)
+        const { data: tutorData, error: tutorError } = await supabase
+          .from('users')
+          .select('full_name, email')
+          .eq('id', userId)
+          .single(); // Assuming the user ID is unique
+        
+        if (tutorError) throw tutorError;
+
+        // Set the user's data (name and email)
+        setUserData({ name: tutorData.full_name, email: tutorData.email });
+      } catch (error) {
+        console.error('Error fetching user data:', error.message);
+      }
+    };
+
+    fetchUserData();
+  }, []);
+
   return (
     <View style={styles.container}>
       {/* Header Section */}
@@ -20,7 +51,9 @@ const DashboardPage = ({ navigation }) => {
           source={require('../assets/oliver.png')}  // Add your profile image here
           style={styles.profileImage}
         />
-        <Text style={styles.userEmail}>oliversmith@gmail.com</Text>
+        {/* Display the logged-in tutor's name and email */}
+        <Text style={styles.userName}>{userData.name}</Text>
+        <Text style={styles.userEmail}>{userData.email}</Text>
       </View>
 
       {/* Icon Row Inside a Box */}
@@ -77,8 +110,6 @@ const DashboardPage = ({ navigation }) => {
         <TouchableOpacity onPress={() => navigation.navigate('TutorSettings')}>
           <Ionicons name="settings-outline" size={24} color="#808080" />
         </TouchableOpacity>
-        {/* New Subject Icon */}
-        
       </View>
     </View>
   );
@@ -92,7 +123,8 @@ const styles = StyleSheet.create({
   logoSecondary: { color: '#FFCC00' },
   userInfo: { alignItems: 'center', marginBottom: 20 },
   profileImage: { width: 120, height: 120, borderRadius: 100, marginBottom: 10, borderWidth: 1, borderColor: '#003366' },
-  userEmail: { fontSize: 16, color: '#003366', fontWeight: 'bold' },
+  userName: { fontSize: 18, fontWeight: 'bold', color: '#003366' },
+  userEmail: { fontSize: 16, color: '#003366' },
   iconBox: { 
     flexDirection: 'row', 
     justifyContent: 'space-between', 

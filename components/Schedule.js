@@ -73,32 +73,32 @@ const SchedulePage = ({ route, navigation }) => {
     }
   };
 
-  // Fetch the subject_id from the tutor_subjects table
-  const fetchSubjectId = async () => {
+  // Fetch all subject_ids from the tutor_subjects table
+  const fetchSubjectIds = async () => {
     try {
       const { data, error } = await supabase
-        .from('tutor_subjects') // Query the tutor_subjects table
+        .from('tutor_subjects')
         .select('subject_id')
         .eq('tutor_id', tutorId);
 
       if (error) {
-        console.error('Error fetching subject_id:', error.message);
+        console.error('Error fetching subject_ids:', error.message);
         Alert.alert('Error', 'Failed to fetch subject information.');
-        return null;
+        return [];
       }
 
-      if (data.length === 0) {
+      if (!data || data.length === 0) {
         Alert.alert('Error', 'No subjects found for this tutor.');
-        return null;
+        return [];
       }
 
-      const subjectId = data[0].subject_id; // Get the first subject_id
-      console.log('Fetched Subject ID:', subjectId); // Log for debugging
-      return subjectId;
+      const subjectIds = data.map((entry) => entry.subject_id); // Collect all subject_ids
+      console.log('Fetched Subject IDs:', subjectIds);
+      return subjectIds;
     } catch (err) {
-      console.error('Error in fetchSubjectId:', err.message);
+      console.error('Error in fetchSubjectIds:', err.message);
       Alert.alert('Error', 'Failed to fetch subject information.');
-      return null;
+      return [];
     }
   };
 
@@ -107,9 +107,11 @@ const SchedulePage = ({ route, navigation }) => {
     console.log('Booking button pressed');
 
     const tuteeId = await fetchTuteeId();
-    const fetchedSubjectId = await fetchSubjectId(); // Fetch subject_id
+    const subjectIds = await fetchSubjectIds(); // Fetch all subject_ids
 
-    if (!tuteeId || !fetchedSubjectId) return;
+    if (!tuteeId || subjectIds.length === 0) return;
+
+    const subjectId = subjectIds[0]; // Use the first subject_id (or implement selection logic)
 
     try {
       const { data, error } = await supabase
@@ -117,7 +119,7 @@ const SchedulePage = ({ route, navigation }) => {
         .insert([{
           tutor_id: tutorId,
           tutee_id: tuteeId,
-          subject_id: fetchedSubjectId,
+          subject_id: subjectId,
           schedule_id: scheduleId,
           booking_date_time: availabilityDateTime,
         }]);

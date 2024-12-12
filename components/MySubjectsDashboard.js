@@ -19,6 +19,7 @@ const SubjectTutorsPage = ({ navigation }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [tutorId, setTutorId] = useState(null);
   const [searchQuery, setSearchQuery] = useState(''); // State for search query
+  const [enrolledSubjects, setEnrolledSubjects] = useState([]); // State to hold enrolled subjects
 
   const subjects = [
     { id: 1000, name: 'Software Engineering' },
@@ -46,9 +47,26 @@ const SubjectTutorsPage = ({ navigation }) => {
       if (tutorError) throw tutorError;
 
       setTutorId(data?.tutor_id);
+      fetchEnrolledSubjects(data?.tutor_id);  // Fetch subjects after getting tutor ID
     } catch (error) {
       console.error('Error fetching tutor ID:', error.message);
       Alert.alert('Error', 'Could not fetch tutor information.');
+    }
+  };
+
+  const fetchEnrolledSubjects = async (tutorId) => {
+    try {
+      const { data, error } = await supabase
+        .from('tutor_subjects')
+        .select('subject_id')
+        .eq('tutor_id', tutorId);
+
+      if (error) throw error;
+
+      const enrolledSubjectIds = data.map((entry) => entry.subject_id);
+      setEnrolledSubjects(enrolledSubjectIds);  // Store the enrolled subject IDs
+    } catch (error) {
+      console.error('Error fetching enrolled subjects:', error.message);
     }
   };
 
@@ -90,36 +108,11 @@ const SubjectTutorsPage = ({ navigation }) => {
     }
   };
 
-  const enrollInSubject = async (subjectId) => {
-    if (!tutorId) {
-      Alert.alert('Error', 'You must be logged in as a tutor to enroll.');
-      return;
-    }
-
-    setIsLoading(true);
-
-    try {
-      const { error } = await supabase
-        .from('tutor_subjects')
-        .insert({
-          tutor_id: tutorId,
-          subject_id: subjectId,
-        });
-
-      if (error) throw error;
-
-      Alert.alert('Success', `You have enrolled in ${selectedSubject.name}!`);
-    } catch (error) {
-      console.error('Error enrolling in subject:', error.message);
-      Alert.alert('Error', 'Could not enroll in subject. Please try again.');
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  // Filtered subjects based on search query
-  const filteredSubjects = subjects.filter((subject) =>
-    subject.name.toLowerCase().includes(searchQuery.toLowerCase())
+  // Filtered subjects based on search query and enrolled subjects
+  const filteredSubjects = subjects.filter(
+    (subject) =>
+      enrolledSubjects.includes(subject.id) && 
+      subject.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   return (
@@ -159,17 +152,12 @@ const SubjectTutorsPage = ({ navigation }) => {
       {/* Enrollment Section */}
       {selectedSubject && (
         <View style={styles.enrollmentContainer}>
-
-         
-
           <TouchableOpacity
             style={styles.viewTutorsButton}
             onPress={() => fetchTutors(selectedSubject.id)}
           >
             <Text style={styles.viewTutorsText}>View Tutors</Text>
           </TouchableOpacity>
-          
-
         </View>
       )}
 
@@ -185,7 +173,6 @@ const SubjectTutorsPage = ({ navigation }) => {
           ))}
         </ScrollView>
       )}
-     
     </View>
   );
 };
@@ -201,7 +188,6 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     paddingHorizontal: 15,
     marginBottom: 10,
-
   },
   subjectsContainer: { flex: 1, marginBottom: 20 },
   subjectButton: {
@@ -220,36 +206,40 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderColor: '#FFC700',
   },
-  enrollmentContainer: { 
-    position: 'absolute', 
+  enrollmentContainer: {
+    position: 'absolute',
     top: 570, // Adjust this value to move the container up or down
     left: 0,
     right: 0,
     alignItems: 'center',
-  
   },
-  enrollButton: { 
-    backgroundColor: '#FFC700', 
-    padding: 15, 
-    paddingHorizontal: 100, 
-    borderRadius: 10 
+  enrollButton: {
+    backgroundColor: '#FFC700',
+    padding: 15,
+    paddingHorizontal: 100,
+    borderRadius: 10,
   },
-  enrollButtonText: { 
-    color: '#000', 
-    fontSize: 16, 
-    textAlign: 'center' 
+  enrollButtonText: {
+    color: '#000',
+    fontSize: 16,
+    textAlign: 'center',
   },
-  selectedSubjectTitle:{
-    marginBottom:10
+  selectedSubjectTitle: {
+    marginBottom: 10,
   },
-  viewTutorsButton: { backgroundColor: '#FFC700', marginTop: 40, padding: 15, paddingHorizontal:100, borderRadius:10 },
+  viewTutorsButton: {
+    backgroundColor: '#FFC700',
+    marginTop: 40,
+    padding: 15,
+    paddingHorizontal: 100,
+    borderRadius: 10,
+  },
   viewTutorsText: { color: '#000', textAlign: 'center', fontSize: 15 },
   tutorsContainer: { marginTop: 20 },
   tutorCard: { padding: 10, backgroundColor: '#f9f9f9', marginBottom: 10 },
   tutorName: { fontSize: 16, fontWeight: 'bold' },
   tutorEmail: { fontSize: 14, color: '#555' },
-  
-  bottomNav: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 10, borderTopWidth: 1, borderTopColor: '#f1f1f1', },
+  bottomNav: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 10, borderTopWidth: 1, borderTopColor: '#f1f1f1' },
 });
 
 export default SubjectTutorsPage;

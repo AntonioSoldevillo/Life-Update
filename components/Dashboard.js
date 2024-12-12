@@ -1,8 +1,39 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, Image, TextInput, TouchableOpacity } from 'react-native';
 import { MaterialIcons, Ionicons, FontAwesome } from '@expo/vector-icons';
+import  supabase  from '../src/supabaseClient'; 
 
 const DashboardPage = ({ navigation }) => {
+  const [userName, setUserName] = useState('');
+
+  useEffect(() => {
+    const fetchUserName = async () => {
+      try {
+        // Get the logged-in user's ID
+        const { data: { user }, error: userError } = await supabase.auth.getUser();
+        if (userError) throw userError;
+
+        const userId = user.id; // Supabase user ID
+
+        // Query the `users` table for the name
+        const { data: userData, error: queryError } = await supabase
+          .from('users')
+          .select('full_name')
+          .eq('id', userId)
+          .single();
+
+        if (queryError) throw queryError;
+
+        // Set the user's name in state
+        setUserName(userData?.full_name || 'Unknown User');
+      } catch (error) {
+        console.error('Error fetching user name:', error.message);
+      }
+    };
+
+    fetchUserName();
+  }, []);
+
   return (
     <View style={styles.container}>
       <View style={styles.header}>
@@ -20,7 +51,7 @@ const DashboardPage = ({ navigation }) => {
         />
         <View style={styles.greeting}>
           <Text style={styles.greetingText}>Hi!</Text>
-          <Text style={styles.userName}>Antonio C. Soldevillo</Text>
+          <Text style={styles.userName}>{userName || 'Loading...'}</Text>
         </View>
       </View>
 
@@ -40,7 +71,7 @@ const DashboardPage = ({ navigation }) => {
               <Text style={styles.cardCount}>2</Text>
             </View>
           </TouchableOpacity>
-          
+
           <TouchableOpacity style={styles.card}>
             <MaterialIcons name="check-circle-outline" size={32} color="#003366" />
             <View style={styles.cardText}>
@@ -75,14 +106,14 @@ const DashboardPage = ({ navigation }) => {
           <Ionicons name="home-outline" size={24} color="#003366" />
         </TouchableOpacity>
         <TouchableOpacity onPress={() => navigation.navigate('TuteeProfile')}>
-  <Ionicons name="person-outline" size={24} color="#808080" />
-</TouchableOpacity>
+          <Ionicons name="person-outline" size={24} color="#808080" />
+        </TouchableOpacity>
         <TouchableOpacity onPress={() => navigation.navigate('Subjects')}>
           <Ionicons name="book-outline" size={24} color="#808080" />
         </TouchableOpacity>
         <TouchableOpacity onPress={() => navigation.navigate('Messages')}>
-  <Ionicons name="chatbubble-outline" size={24} color="#808080" />
-</TouchableOpacity>
+          <Ionicons name="chatbubble-outline" size={24} color="#808080" />
+        </TouchableOpacity>
 
         <TouchableOpacity onPress={() => navigation.navigate('Settings')}>
           <Ionicons name="settings-outline" size={24} color="#808080" />
@@ -215,6 +246,5 @@ const styles = StyleSheet.create({
     borderTopColor: '#f1f1f1',
   },
 });
-
 
 export default DashboardPage;
