@@ -1,6 +1,6 @@
-// EditSchedule.js
 import React, { useState, useEffect } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert } from 'react-native';
+import { Ionicons } from 'react-native-vector-icons';  // Import Ionicons for back arrow
 import supabase from '../src/supabaseClient';
 
 const EditSchedule = ({ route, navigation }) => {
@@ -27,7 +27,13 @@ const EditSchedule = ({ route, navigation }) => {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Edit Schedule</Text>
+      {/* Back Button and Title in a Row */}
+      <View style={styles.header}>
+        <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
+          <Ionicons name="arrow-back" size={24} color="#003366" />
+        </TouchableOpacity>
+        <Text style={styles.title}>Edit Schedule</Text>
+      </View>
 
       <Text style={styles.label}>Availability Date and Time</Text>
       <TextInput
@@ -49,12 +55,23 @@ const styles = StyleSheet.create({
     flex: 1,
     padding: 20,
     backgroundColor: '#f9f9f9',
+    marginTop: 40
+  },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center', // Align items horizontally in the row
+    marginBottom: 40, // Add space below the header
+  },
+  backButton: {
+    marginRight: 10, // Space between the back button and the title
   },
   title: {
     fontSize: 24,
     fontWeight: 'bold',
-    marginBottom: 20,
-    textAlign: 'center',
+    textAlign: 'center', // This centers the title within the remaining space
+    flex: 1, // Make title take up available space
+    color:'#003366',
+    marginLeft:-23
   },
   label: {
     fontSize: 16,
@@ -70,7 +87,7 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   saveButton: {
-    backgroundColor: '#00796b',
+    backgroundColor: '#003366',
     paddingVertical: 10,
     paddingHorizontal: 20,
     borderRadius: 5,

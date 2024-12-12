@@ -56,39 +56,36 @@ const DashboardPage = ({ navigation }) => {
         <Text style={styles.userEmail}>{userData.email}</Text>
       </View>
 
-      {/* Icon Row Inside a Box */}
-      <View style={styles.iconBox}>
-        <TouchableOpacity style={styles.iconButton}>
-          <Ionicons name="time-outline" size={24} color="#003366" />
+      {/* Tutor Sessions Section */}
+      <Text style={styles.sectionTitle}>Tutor Sessions</Text>
+      
+      {/* Swap Messages and My Subjects */}
+      <View style={styles.cardsRow}>
+        {/* My Subjects Card */}
+        <TouchableOpacity style={styles.card} onPress={() => navigation.navigate('MySubjectsDashboard')}>
+          <Ionicons name="book" size={32} color="#003366" />
+          <View style={styles.cardText}>
+            <Text style={styles.cardTitle}>My Subjects</Text>
+          </View>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.iconButton}>
-          <Ionicons name="play-outline" size={24} color="#003366" />
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.iconButton}>
-          <Ionicons name="card-outline" size={24} color="#003366" />
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.iconButton}>
-          <Ionicons name="checkmark-circle-outline" size={24} color="#003366" />
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.iconButton}>
-          <Ionicons name="close-circle-outline" size={24} color="#003366" />
+
+        {/* Messages Card */}
+        <TouchableOpacity style={styles.card} onPress={() => navigation.navigate('TutorMessage')}>
+          <Ionicons name="chatbubble-ellipses-outline" size={32} color="#003366" />
+          <View style={styles.cardText}>
+            <Text style={styles.cardTitle}>Messages</Text>
+            <Text style={styles.cardCount}>3</Text> {/* Adjust the count dynamically */}
+          </View>
         </TouchableOpacity>
       </View>
 
-      {/* Tutor Sessions Section */}
-      <Text style={styles.sectionTitle}>Tutor Sessions</Text>
+      {/* Booking Request Card in the same row */}
       <View style={styles.cardsContainer}>
         <TouchableOpacity style={styles.card} onPress={() => navigation.navigate('Pending')}>
           <MaterialIcons name="pending-actions" size={32} color="#003366" />
           <View style={styles.cardText}>
             <Text style={styles.cardTitle}>Booking Request</Text>
             <Text style={styles.cardCount}>2</Text>
-          </View>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.card} onPress={() => navigation.navigate('MySubjectsDashboard')}>
-          <Ionicons name="book" size={32} color="#003366" />
-          <View style={styles.cardText}>
-            <Text style={styles.cardTitle}>My Subjects</Text>
           </View>
         </TouchableOpacity>
       </View>
@@ -125,27 +122,22 @@ const styles = StyleSheet.create({
   profileImage: { width: 120, height: 120, borderRadius: 100, marginBottom: 10, borderWidth: 1, borderColor: '#003366' },
   userName: { fontSize: 18, fontWeight: 'bold', color: '#003366' },
   userEmail: { fontSize: 16, color: '#003366' },
-  iconBox: { 
-    flexDirection: 'row', 
-    justifyContent: 'space-between', 
-    backgroundColor: '#f1f1f1', 
-    padding: 10, 
-    borderRadius: 10, 
-    marginBottom: 20 
-  },
-  iconButton: { 
-    backgroundColor: '#fff', 
-    padding: 15, 
-    borderRadius: 10, 
-    alignItems: 'center' 
-  },
   sectionTitle: { fontSize: 18, fontWeight: 'bold', color: '#003366', marginBottom: 10 },
-  cardsContainer: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 20 },
-  card: { flex: 1, backgroundColor: '#f1f1f1', borderRadius: 10, padding: 20, alignItems: 'center', marginHorizontal: 5 },
+  cardsRow: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 20 },
+  cardsContainer: { flexDirection: 'row', justifyContent: 'center', marginBottom: 20 },
+  card: { 
+    flex: 1, 
+    backgroundColor: '#f1f1f1', 
+    borderRadius: 10, 
+    padding: 20, 
+    alignItems: 'center', 
+    marginHorizontal: 5,
+    marginTop: -30
+  },
   cardText: { marginTop: 10, alignItems: 'center' },
   cardTitle: { fontSize: 16, fontWeight: 'bold', color: '#003366' },
   cardCount: { fontSize: 16, color: '#003366' },
-  bottomNav: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 10, borderTopWidth: 1, borderTopColor: '#f1f1f1', },
+  bottomNav: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 10, borderTopWidth: 1, borderTopColor: '#f1f1f1' },
 });
 
 export default DashboardPage;

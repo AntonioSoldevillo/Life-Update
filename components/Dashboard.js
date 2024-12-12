@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, Image, TextInput, TouchableOpacity } from 'react-native';
 import { MaterialIcons, Ionicons, FontAwesome } from '@expo/vector-icons';
-import  supabase  from '../src/supabaseClient'; 
+import  supabase  from '../src/supabaseClient'; // Adjust the path as needed
 
 const DashboardPage = ({ navigation }) => {
   const [userName, setUserName] = useState('');

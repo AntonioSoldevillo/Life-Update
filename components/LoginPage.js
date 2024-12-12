@@ -5,6 +5,7 @@ import { Ionicons } from '@expo/vector-icons'; // For icons
 import supabase from '../src/supabaseClient';  // Default import instead of named import
 
 const LoginPage = ({ navigation }) => {
+  
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [rememberMe, setRememberMe] = useState(false);
@@ -98,6 +99,12 @@ const LoginPage = ({ navigation }) => {
         style={styles.input}
         keyboardType="email-address"
         mode="outlined"
+        theme={{
+        colors: {
+          primary: '#003366', // Border color
+          underlineColor: 'transparent', // If you want to hide the underline
+        }}
+        }
       />
 
       {/* Password input with visibility toggle */}
@@ -109,6 +116,12 @@ const LoginPage = ({ navigation }) => {
           secureTextEntry={!passwordVisible} // Toggle secureTextEntry based on state
           style={styles.input}
           mode="outlined"
+          theme={{
+        colors: {
+          primary: '#003366', // Border color
+          underlineColor: 'transparent', // If you want to hide the underline
+        }}
+        }
         />
         <TouchableOpacity
           style={styles.eyeIcon}
@@ -154,10 +167,20 @@ const LoginPage = ({ navigation }) => {
 
       {/* Social media login options */}
       <Text style={styles.orText}>OR</Text>
-      <Button mode="outlined" icon="google" style={styles.socialButton}>
+      <Button mode="outlined" icon="google" style={styles.socialButton} theme={{
+        colors: {
+          primary: '#003366', // Border color
+          underlineColor: 'transparent', // If you want to hide the underline
+        }}
+        }>
         Continue with Google
       </Button>
-      <Button mode="outlined" icon="facebook" style={styles.socialButton}>
+      <Button mode="outlined" icon="facebook" style={styles.socialButton} theme={{
+        colors: {
+          primary: '#003366', // Border color
+          underlineColor: 'transparent', // If you want to hide the underline
+        }}
+        }>
         Continue with Facebook
       </Button>
     </View>

@@ -1,45 +1,62 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, FlatList, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import supabase from '../src/supabaseClient'; // Import the Supabase client
 
 const BookingsInfo = ({ navigation }) => {
   const [bookings, setBookings] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Dummy data for bookings
-    const dummyBookings = [
-      {
-        booking_id: 1,
-        subject: 'Math 101',
-        tutor: 'John Doe',
-        booking_date_time: '2024-12-10 10:00 AM',
-        status: 'Pending',
-      },
-      {
-        booking_id: 2,
-        subject: 'Physics 102',
-        tutor: 'Jane Smith',
-        booking_date_time: '2024-12-12 02:00 PM',
-        status: 'Accepted',
-      },
-      {
-        booking_id: 3,
-        subject: 'Chemistry 103',
-        tutor: 'Alice Johnson',
-        booking_date_time: '2024-12-14 01:00 PM',
-        status: 'Rejected',
-      },
-      {
-        booking_id: 4,
-        subject: 'History 101',
-        tutor: 'Bob Lee',
-        booking_date_time: '2024-12-16 09:00 AM',
-        status: 'Pending',
-      },
-    ];
+    const fetchBookings = async () => {
+      try {
+        // Fetch the logged-in user's ID from Supabase Auth
+        const { data: { user }, error: userError } = await supabase.auth.getUser();
+        
+        if (userError) {
+          console.error('Error fetching user:', userError.message);
+          return;
+        }
 
-    // Set dummy data to bookings state
-    setBookings(dummyBookings);
+        const userId = user ? user.id : null; // If user is logged in, get the user ID, else null
+
+        if (!userId) {
+          console.log("User is not logged in");
+          return;
+        }
+
+        // Fetch bookings data, including related tutor (from users table), subject, and schedule information
+        const { data, error } = await supabase
+  .from('bookings')
+  .select(`
+    booking_id,
+    booking_date_time,
+    tutors:tutor_id (
+      user_id, 
+      users:user_id (full_name)
+    ),
+    tutees:tutee_id (full_name),  // Assuming tutee_id relates to the users table
+    subject_id, // Include or expand for subjects if necessary
+    schedule_id  // Include or expand for schedules if necessary
+  `)
+  .eq('tutee_id', userId); // Filter for bookings belonging to the logged-in tutee (user)
+
+
+if (error) {
+  throw error;
+}
+
+setBookings(data);
+
+
+      } catch (error) {
+        console.error('Error fetching bookings:', error.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchBookings();
   }, []);
 
   return (
@@ -53,21 +70,29 @@ const BookingsInfo = ({ navigation }) => {
       </View>
 
       {/* Bookings List */}
-      {bookings.length === 0 ? (
+      {loading ? (
+        <Text style={styles.noBookings}>Loading...</Text>
+      ) : bookings.length === 0 ? (
         <Text style={styles.noBookings}>No bookings found.</Text>
       ) : (
         <FlatList
-          data={bookings}
-          keyExtractor={(item) => item.booking_id.toString()}
-          renderItem={({ item }) => (
-            <View style={styles.bookingContainer}>
-              <Text style={styles.bookingText}>Subject: {item.subject}</Text>
-              <Text style={styles.bookingText}>Tutor: {item.tutor}</Text>
-              <Text style={styles.bookingText}>Date & Time: {item.booking_date_time}</Text>
-              <Text style={[styles.bookingText, styles.status(item.status)]}>Status: {item.status}</Text>
-            </View>
-          )}
-        />
+  data={bookings}
+  keyExtractor={(item) => item.booking_id.toString()}
+  renderItem={({ item }) => (
+    <View style={styles.bookingContainer}>
+      <Text style={styles.bookingText}>
+        Tutor: {item.tutors?.users?.full_name || 'No tutor assigned'}
+      </Text>
+      <Text style={styles.bookingText}>
+        Tutee: {item.tutees?.full_name || 'No tutee assigned'}
+      </Text>
+      <Text style={styles.bookingText}>
+        Booking Date & Time: {item.booking_date_time || 'No date/time provided'}
+      </Text>
+    </View>
+  )}
+/>
+
       )}
 
       {/* Bottom Navigation Bar */}
@@ -143,7 +168,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#808080',
   },
- bottomNav: {
+  bottomNav: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',

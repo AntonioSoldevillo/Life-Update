@@ -24,6 +24,7 @@ import TutorSettings from './components/TutorSettings';
 import TutorProfile from './components/TutorProfile';
 import ForgotPassword from './components/ForgotPassword';
 import MySubjectsDashboard from './components/MySubjectsDashboard';
+import TutorMessage from './components/TutorMessage';
 
 
 const Stack = createStackNavigator();
@@ -159,6 +160,12 @@ export default function App() {
           component={MySubjectsDashboard}
           options={{ headerShown: false }}
         />
+        <Stack.Screen
+          name="TutorMessage"
+          component={TutorMessage}
+          options={{ headerShown: false }}
+        />
+       
 
       </Stack.Navigator>
     </NavigationContainer>
